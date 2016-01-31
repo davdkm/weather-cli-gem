@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+require_relative '../config/environment'
+
+
+puts "Hello! It's a lovely day!"
+Weather.get_input
+Weather.api_call
