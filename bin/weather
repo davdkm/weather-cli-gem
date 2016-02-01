@@ -3,5 +3,4 @@ require_relative '../config/environment'
 
 
 puts "Hello! What's the weather going to be like?"
-Weather.get_input
-Weather.call
+Weather.start
