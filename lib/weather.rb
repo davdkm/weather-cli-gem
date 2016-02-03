@@ -1,12 +1,15 @@
 require 'pry'
 require 'open-uri'
 require 'nokogiri'
+require 'colorize'
 
 class Weather
+
   @@city = ''
   @@country = ''
   @@weather = []
   @@days = []
+  @@day = []
 
   attr_accessor :temp, :humidity, :location, :temp, :humidity, :cloud, :precipitation, :symbol, :wind, :time, :weather_data;
 
@@ -29,8 +32,14 @@ class Weather
 
   def self.get_input
     input = gets.strip
-    valid_input = ['yes', 'y', 'n', 'no']
-    valid_input.detect("#{input}") ? input : self.get_input
+    ['yes', 'y', 'n', 'no'].detect(input.downcase) ? input.downcase : self.get_input
+  end
+
+  def self.clear_all
+    @@weather.clear
+    @@days.clear
+    @@city = ''
+    @@country = ''
   end
 
   def self.city
@@ -47,14 +56,6 @@ class Weather
 
   def self.location
     @@location
-  end
-
-  def self.exit
-    @@exit
-  end
-
-  def self.exit=(state)
-    @@exit = state
   end
 
   def self.call
@@ -76,36 +77,37 @@ class Weather
   end
 
   def self.forecast
-    days = []
-    @@weather.each do |key, value|
-      days << key[:time].split("T").first
-    end
+    days = self.split_time
     day = days.uniq[self.get_day - 1]
+
+    puts "Here's the weather forecast for " + "#{self.location}".colorize(:red) + " on " + "#{day}.".colorize(:light_blue)
     @@weather.each do |item|
       if item[:time].split("T").first == day
         puts "-------------------"
-        puts "Weather forecast for #{item[:time].split("T").first} at #{item[:time].split("T").last}."
-        puts "Prevailing weather condition: #{item[:condition]}."
-        puts "The temperature will be #{item[:temp]}F."
-        puts "Humidity will be #{item[:humidity]}%."
+        puts "At " + "#{item[:time].split("T").last}:".colorize(:red) + " #{item[:condition]}.".colorize(:light_blue)
+        puts "The temperature will be " + "#{item[:temp]}F.".colorize(:red)
+        puts "Humidity will be at " + "#{item[:humidity]}%.".colorize(:light_blue)
       end
     end
   end
 
-  def self.day_forecast
-    days = []
-    @@weather.each do |key, value|
-      days << key[:time].split("T").first
-    end
+  def self.day_to_forecast
+    days = self.split_time
     days.uniq.each_with_index{|date, index| puts "#{index + 1}. #{date}"}
+  end
+
+  def self.split_time
+    array = []
+    @@weather.each{|key, value| array << key[:time].split("T").first}
+    array
   end
 
   def self.start
     self.get_location
     self.call
 
-    puts "Please select a day to forecast for #{Weather.location}."
-    self.day_forecast
+    puts "Please select a day to forecast for #{self.location}."
+    self.day_to_forecast
     self.forecast
     self.again?
   end
@@ -114,6 +116,7 @@ class Weather
     puts "Would you like to receive another forecast?"
     input = self.get_input
     if input == 'y' || input == 'yes'
+      self.clear_all
       self.start
     elsif input == 'n' || input == 'no'
       puts "Goodbye!"
